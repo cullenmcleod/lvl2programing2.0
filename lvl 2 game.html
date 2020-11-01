@@ -1,0 +1,309 @@
+<!doctype html>
+
+<body>
+    <canvas id="gameCanvas" width="900" height="600"></canvas>
+    <script>
+        var canvas, canvasContext;
+
+        window.onload = function() {
+            canvas = document.getElementById('gameCanvas');
+            canvasContext = canvas.getContext('2d');
+
+            document.addEventListener('keydown', keyPressed);
+            document.addEventListener('keyup', keyReleased);
+
+            setInterval(mainloop, 1000 / 10);
+        }
+
+       
+        
+        var settingUp = true;
+        
+        
+        function mainloop() {
+            if (settingUp) {
+                mapData();
+                settingUp = false;
+                //                playerMoveRedraw()
+            }
+                playerMove();
+                findplayer();
+                renderBlockMap();
+
+        }
+
+
+        var leftKeyPress = false;
+        var rightKeyPress = false;
+        var upKeyPress = false;
+        var downKeyPress = false;
+
+
+        const LEFT_KEY = 37;
+        const RIGHT_KEY = 39;
+        const UP_KEY = 38;
+        const DOWN_KEY = 40;
+
+        var gridCols = 30;
+        var gridRows = 20;
+        
+        var lvl = 0;
+        var arraymap = [ // dungeon map
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+            1, 3, 1, 0, 4, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1,
+            1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1,
+            1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1,
+            1, 2, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 1, 0, 1,
+            1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1,
+            1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1,
+            1, 1, 0, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1, 0, 1, 0, 1,
+            1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 0, 0, 0, 0, 1, 1, 1, 0, 1, 0, 1,
+            1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 0, 0, 1, 0, 1,
+            1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 1,
+            1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 4, 0, 1, 0, 1, 4, 0, 0, 0, 1, 1, 1, 1, 0, 1, 0, 1,
+            1, 0, 1, 1, 1, 1, 0, 1, 1, 0, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 0, 1, 0, 1,
+            1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 1, 1, 0, 0, 4, 1, 1, 1, 1, 1,
+            1, 0, 1, 1, 0, 1, 0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1,
+            1, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1,
+            1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1,
+            1, 1, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1,
+            1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 2, 1,
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+
+        ];
+        
+              var arraymap2 = [ // dungeon map
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+            1, 3, 4, 4, 4, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 1,
+            1, 0, 4, 0, 0, 0, 4, 4, 4, 0, 4, 4, 4, 4, 0, 4, 4, 4, 4, 0, 4, 4, 4, 4, 4, 4, 0, 4, 0, 1,
+            1, 2, 4, 0, 4, 4, 4, 0, 0, 0, 4, 0, 4, 0, 0, 4, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 4, 0, 1,
+            1, 0, 0, 0, 0, 0, 4, 0, 4, 0, 0, 0, 4, 4, 0, 4, 0, 4, 4, 0, 4, 0, 4, 4, 4, 4, 4, 4, 0, 1,
+            1, 4, 4, 0, 4, 0, 0, 0, 4, 0, 4, 0, 0, 4, 0, 0, 0, 4, 0, 0, 0, 0, 0, 4, 0, 0, 4, 0, 0, 1,
+            1, 0, 0, 0, 4, 0, 4, 4, 4, 0, 4, 0, 4, 4, 0, 4, 4, 4, 0, 0, 4, 4, 4, 4, 0, 4, 4, 4, 0, 1,
+            1, 0, 4, 4, 4, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+            1, 0, 4, 0, 0, 0, 4, 0, 4, 0, 4, 0, 0, 4, 4, 4, 0, 4, 4, 0, 4, 0, 4, 4, 0, 4, 0, 4, 4, 1,
+            1, 0, 0, 0, 4, 4, 4, 0, 4, 0, 4, 4, 0, 4, 1, 4, 0, 4, 0, 0, 4, 0, 4, 0, 0, 4, 0, 0, 0, 1,
+            1, 0, 4, 0, 4, 0, 0, 0, 4, 0, 0, 0, 0, 4, 4, 4, 0, 4, 0, 4, 4, 0, 4, 0, 4, 4, 4, 4, 4, 1,
+            1, 0, 4, 0, 4, 0, 4, 4, 4, 4, 0, 4, 0, 0, 0, 0, 0, 4, 0, 4, 0, 0, 4, 0, 4, 0, 0, 0, 0, 1,
+            1, 4, 4, 0, 4, 0, 0, 0, 0, 4, 0, 4, 4, 4, 4, 0, 4, 4, 0, 4, 0, 4, 4, 0, 4, 0, 4, 0, 0, 1,
+            1, 0, 0, 0, 4, 0, 4, 4, 0, 4, 0, 4, 0, 0, 0, 0, 0, 0, 0, 4, 0, 4, 0, 0, 4, 0, 4, 4, 0, 1,
+            1, 0, 4, 4, 4, 0, 4, 0, 0, 4, 0, 4, 0, 4, 4, 4, 4, 4, 4, 4, 0, 4, 0, 0, 4, 0, 0, 4, 0, 1,
+            1, 0, 4, 0, 0, 0, 4, 4, 0, 4, 0, 4, 0, 4, 0, 0, 0, 4, 0, 0, 0, 4, 0, 0, 4, 4, 0, 4, 0, 1,
+            1, 0, 4, 0, 4, 4, 4, 0, 0, 0, 0, 4, 0, 0, 0, 4, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 4, 0, 1,
+            1, 0, 4, 0, 4, 0, 4, 4, 4, 4, 0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 0, 1,
+            1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 2, 1,
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+
+        ];
+     
+        var arraymap3 = [ // dungeon map
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+            1, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+            1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+            1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+            1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+            1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+            1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+            1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+            1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+            1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+            1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+            1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+            1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+            1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+            1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+            1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+            1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+            1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+            1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1,
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+
+        ];
+
+        function mapData(){
+            var gridRowCount = 0;
+
+            arraymap.forEach(function(block, i, array) {
+                var size = 20;
+
+                var xPos = i % gridCols * size;
+                var yPos = gridRowCount * size;
+
+                if (i % gridCols == 0 && i != 0) { // row end
+                    gridRowCount++;
+                }
+                var value = 0; // floor value
+                var color = '';
+                var playerPos = 3; //player
+                if (block == 0) {
+                    value = 0;
+                    color = 'black'; // floor
+                } else if (block == 1) {
+                    value = 1;
+                    color = 'grey';
+                } else if (block == 2) {
+                    value = 2;
+                    color = 'green';
+                } else if (block == 3) { // player
+                    value = 3;
+                    color = 'blue';
+                } else if (block == 4){ // death
+                    value = 4;
+                    color = 'black';
+                }
+
+                var block = {
+                    xPos: xPos,
+                    yPos: yPos,
+                    size: size,
+                    color: color,
+                    value: value
+                }
+
+                arraymap.splice(i, 1, block);
+            });
+
+        }// end func
+
+        var playerLoc = 0;
+
+        function findplayer() {
+
+            arraymap.forEach(function(square, i, array) {
+                if (square.value == 3) {
+                    playerLoc = i;
+                }
+            });
+        }
+
+      function newLevel(){
+          lvl++;
+          arraymap.forEach(function(block,i,array){
+              delete arraymap[i];
+          });
+          arraymap = arraymap.filter(item => item !== undefined);
+          
+          arraymap = arraymap2;
+          settingUp = true; // redraw map 
+          
+          if(lvl == 2){
+              arraymap.forEach(function(block,i,array){
+             delete arraymap[i]});
+            
+           arraymap = arraymap.filter(item => item !== undefined);
+              arraymap = arraymap3;
+              settingUp = true;
+          
+             }
+      }
+
+        function keyPressed(evt) {
+            if (evt.keyCode == RIGHT_KEY) {
+                rightKeyPress = true;
+            }
+            if (evt.keyCode == LEFT_KEY) {
+                leftKeyPress = true;
+            }
+            if (evt.keyCode == UP_KEY) {
+                upKeyPress = true;
+            }
+            if (evt.keyCode == DOWN_KEY) {
+                downKeyPress = true;
+            }
+        } // end func
+        
+
+
+        function keyReleased(evt) {
+            if (evt.keyCode == RIGHT_KEY) {
+                rightKeyPress = false;
+            }
+            if (evt.keyCode == LEFT_KEY) {
+                leftKeyPress = false;
+            }
+            if (evt.keyCode == UP_KEY) {
+                upKeyPress = false;
+            }
+            if (evt.keyCode == DOWN_KEY) {
+                downKeyPress = false;
+            }
+        } // end func
+        
+
+
+
+        function makeblock() {
+            var blockXpos = 0;
+        }
+
+
+        var nextBlock = 0;
+        
+        
+
+        function playerMoveRedraw() {
+            if (arraymap[nextBlock].value == 0) {
+                arraymap[nextBlock].value = 3;
+                arraymap[nextBlock].color = 'blue';
+
+                arraymap[playerLoc].value = 0;
+                arraymap[playerLoc].color = 'black'
+            }
+            if (arraymap[nextBlock].value == 2) {
+//                lvl++ ;
+                newLevel();
+            }
+            
+            if (arraymap[nextBlock].value == 4){
+                arraymap[playerLoc].value = 0;
+                arraymap[playerLoc].color = 'black'
+             
+                playerLoc = 31;
+                arraymap[playerLoc].value = 2;
+                arraymap[playerLoc].color = 'blue'
+            }
+        }
+        
+
+        function playerMove() {
+            if (leftKeyPress) {
+                findplayer();
+                nextBlock = playerLoc - 1;
+                playerMoveRedraw();
+
+            }
+            if (rightKeyPress) {
+                console.log('here')
+                findplayer();
+                nextBlock = playerLoc + 1;
+                playerMoveRedraw();
+
+            }
+            if (upKeyPress) {
+                findplayer();
+                nextBlock = playerLoc - gridCols;
+                playerMoveRedraw();
+
+            }
+            if (downKeyPress) {
+                findplayer();
+                nextBlock = playerLoc + gridCols;
+                playerMoveRedraw();
+
+            }
+        } // end func
+
+        function renderBlockMap() {
+            arraymap.forEach(function(block, i, array) {
+                colorRect(block.xPos, block.yPos, block.size, block.size, block.color);
+            });
+
+        } // end func
+
+        function colorRect(x, y, w, h, c) {
+            canvasContext.fillStyle = c;
+            canvasContext.fillRect(x, y, w, h);
+        } // end func
+
+    </script>
+</body>

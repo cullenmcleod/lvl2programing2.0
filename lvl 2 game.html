@@ -1,7 +1,25 @@
 <!doctype html>
 
+<head>
+    <style>
+        html {
+            background-color: black;
+        }
+
+        canvas {
+            display: block;
+            margin: 10vh auto;
+            z-index: 1;
+            /*        background-color: black;*/
+        }
+
+    </style>
+
+
+</head>
+
 <body>
-    <canvas id="gameCanvas" width="900" height="600"></canvas>
+    <canvas id="gameCanvas" width="600" height="400"></canvas>
     <script>
         var canvas, canvasContext;
 
@@ -12,25 +30,54 @@
             document.addEventListener('keydown', keyPressed);
             document.addEventListener('keyup', keyReleased);
 
-            setInterval(mainloop, 1000 / 10);
+            setInterval(mainloop, 1000 / speeded);
+
+        }
+        
+        
+        var difficulty = '';
+        var username = '';
+        var pass = false;
+        var speeded = 0;
+        var deathcount = 0;
+        while (pass == false) {
+            username = prompt('username');
+
+            difficulty = prompt('how hard do you want it?', 'easy medium or hard');
+            if (difficulty == 'easy' || difficulty == 'medium' || difficulty == 'hard') {
+                pass = true;
+            }
         }
 
-       
-        
+        if (difficulty == 'easy') {
+            speeded = 10;
+        }
+
+        if (difficulty == 'medium') {
+            speeded = 20;
+        }
+
+        if (difficulty == 'hard') {
+            speeded = 30;
+        }
+
+
+        var gamerun = true;
         var settingUp = true;
-        
-        
+
+
         function mainloop() {
             if (settingUp) {
                 mapData();
                 settingUp = false;
                 //                playerMoveRedraw()
             }
-                playerMove();
-                findplayer();
-                renderBlockMap();
+            playerMove();
+            findplayer();
+            renderBlockMap();
+            end();
 
-        }
+        } //end function
 
 
         var leftKeyPress = false;
@@ -46,14 +93,14 @@
 
         var gridCols = 30;
         var gridRows = 20;
-        
+
         var lvl = 0;
         var arraymap = [ // dungeon map
             1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
             1, 3, 1, 0, 4, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1,
             1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1,
             1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1,
-            1, 2, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 1, 0, 1,
+            1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 1, 0, 1,
             1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1,
             1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1,
             1, 1, 0, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1, 0, 1, 0, 1,
@@ -71,12 +118,12 @@
             1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
 
         ];
-        
-              var arraymap2 = [ // dungeon map
+
+        var arraymap2 = [ // dungeon map 2
             1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
             1, 3, 4, 4, 4, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 1,
             1, 0, 4, 0, 0, 0, 4, 4, 4, 0, 4, 4, 4, 4, 0, 4, 4, 4, 4, 0, 4, 4, 4, 4, 4, 4, 0, 4, 0, 1,
-            1, 2, 4, 0, 4, 4, 4, 0, 0, 0, 4, 0, 4, 0, 0, 4, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 4, 0, 1,
+            1, 0, 4, 0, 4, 4, 4, 0, 0, 0, 4, 0, 4, 0, 0, 4, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 4, 0, 1,
             1, 0, 0, 0, 0, 0, 4, 0, 4, 0, 0, 0, 4, 4, 0, 4, 0, 4, 4, 0, 4, 0, 4, 4, 4, 4, 4, 4, 0, 1,
             1, 4, 4, 0, 4, 0, 0, 0, 4, 0, 4, 0, 0, 4, 0, 0, 0, 4, 0, 0, 0, 0, 0, 4, 0, 0, 4, 0, 0, 1,
             1, 0, 0, 0, 4, 0, 4, 4, 4, 0, 4, 0, 4, 4, 0, 4, 4, 4, 0, 0, 4, 4, 4, 4, 0, 4, 4, 4, 0, 1,
@@ -95,32 +142,56 @@
             1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
 
         ];
-     
-        var arraymap3 = [ // dungeon map
+
+        var arraymap3 = [ // dungeon map 3
             1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
             1, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+            1, 4, 4, 4, 4, 4, 4, 4, 4, 0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 1,
+            1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+            1, 4, 4, 4, 4, 4, 4, 4, 4, 0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 1,
+            1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+            1, 4, 4, 4, 4, 4, 4, 4, 0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 1,
+            1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+            1, 4, 4, 4, 4, 4, 4, 4, 4, 0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 1,
+            1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+            1, 4, 4, 4, 4, 4, 4, 4, 4, 0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 1,
+            1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+            1, 4, 4, 4, 4, 4, 4, 4, 4, 0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 1,
+            1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+            1, 4, 4, 4, 4, 4, 4, 4, 4, 0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 1,
+            1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+            1, 4, 4, 4, 4, 4, 4, 4, 4, 0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 1,
+            1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1,
+            1, 4, 4, 4, 4, 4, 4, 4, 4, 0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 1,
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+        ];
+
+        var arraymap4 = [ // dungeon map 4
+
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+            1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+            1, 0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+            1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+            1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+            1, 0, 0, 0, 1, 0, 0, 1, 3, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+            1, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+            1, 0, 0, 0, 1, 0, 0, 1, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
             1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
             1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
             1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-            1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-            1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-            1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-            1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-            1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-            1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-            1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-            1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-            1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-            1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-            1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-            1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+            1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 1,
+            1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 1,
+            1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1,
+            1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1,
+            1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 1,
+            1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 1,
             1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
             1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1,
             1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
 
         ];
 
-        function mapData(){
+        function mapData() {
             var gridRowCount = 0;
 
             arraymap.forEach(function(block, i, array) {
@@ -147,7 +218,7 @@
                 } else if (block == 3) { // player
                     value = 3;
                     color = 'blue';
-                } else if (block == 4){ // death
+                } else if (block == 4) { // death
                     value = 4;
                     color = 'black';
                 }
@@ -163,7 +234,7 @@
                 arraymap.splice(i, 1, block);
             });
 
-        }// end func
+        } // end func
 
         var playerLoc = 0;
 
@@ -176,26 +247,48 @@
             });
         }
 
-      function newLevel(){
-          lvl++;
-          arraymap.forEach(function(block,i,array){
-              delete arraymap[i];
-          });
-          arraymap = arraymap.filter(item => item !== undefined);
-          
-          arraymap = arraymap2;
-          settingUp = true; // redraw map 
-          
-          if(lvl == 2){
-              arraymap.forEach(function(block,i,array){
-             delete arraymap[i]});
-            
-           arraymap = arraymap.filter(item => item !== undefined);
-              arraymap = arraymap3;
-              settingUp = true;
-          
-             }
-      }
+        function newLevel() {
+            lvl++;
+            arraymap.forEach(function(block, i, array) {
+                delete arraymap[i];
+            });
+            arraymap = arraymap.filter(item => item !== undefined);
+
+            arraymap = arraymap2;
+            settingUp = true; // redraw map 
+
+            if (lvl == 2) {
+                arraymap.forEach(function(block, i, array) {
+                    delete arraymap[i]
+                });
+
+                arraymap = arraymap.filter(item => item !== undefined);
+                arraymap = arraymap3;
+                settingUp = true;
+
+            }
+
+            if (lvl == 3) {
+                arraymap.forEach(function(block, i, array) {
+                    delete arraymap[i]
+                });
+
+                arraymap = arraymap.filter(item => item !== undefined);
+                arraymap = arraymap4;
+                settingUp = true;
+
+
+            }
+
+        }
+        
+        
+        
+        function end() {
+            if (lvl == 3)
+                drawText(username + ', you win with ' + deathcount + ' deaths' , canvas.width, canvas.height/2, '30px Arial', 'blue')
+
+        } // end endScreen func
 
         function keyPressed(evt) {
             if (evt.keyCode == RIGHT_KEY) {
@@ -211,7 +304,7 @@
                 downKeyPress = true;
             }
         } // end func
-        
+
 
 
         function keyReleased(evt) {
@@ -228,7 +321,7 @@
                 downKeyPress = false;
             }
         } // end func
-        
+
 
 
 
@@ -238,8 +331,8 @@
 
 
         var nextBlock = 0;
-        
-        
+
+
 
         function playerMoveRedraw() {
             if (arraymap[nextBlock].value == 0) {
@@ -250,20 +343,21 @@
                 arraymap[playerLoc].color = 'black'
             }
             if (arraymap[nextBlock].value == 2) {
-//                lvl++ ;
+                //                lvl++ ;
                 newLevel();
             }
-            
-            if (arraymap[nextBlock].value == 4){
+
+            if (arraymap[nextBlock].value == 4) {
                 arraymap[playerLoc].value = 0;
                 arraymap[playerLoc].color = 'black'
-             
+                deathcount++;
+
                 playerLoc = 31;
                 arraymap[playerLoc].value = 2;
                 arraymap[playerLoc].color = 'blue'
             }
         }
-        
+
 
         function playerMove() {
             if (leftKeyPress) {
@@ -298,12 +392,17 @@
                 colorRect(block.xPos, block.yPos, block.size, block.size, block.color);
             });
 
-        } // end func
+        } // end render func
 
         function colorRect(x, y, w, h, c) {
             canvasContext.fillStyle = c;
             canvasContext.fillRect(x, y, w, h);
-        } // end func
+        } // end colorRect func
 
+        function drawText(msg, x, y, f, c) {
+            canvasContext.fillStyle = c;
+            canvasContext.font = f; //"20px Arial"`
+            canvasContext.fillText(msg, x, y)
+        } // end drawText func
     </script>
 </body>

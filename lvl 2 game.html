@@ -49,15 +49,15 @@
             }
         }
 
-        if (difficulty == 'easy') {
+        if (difficulty == 'easy') { // easy difculty
             speeded = 10;
         }
 
-        if (difficulty == 'medium') {
+        if (difficulty == 'medium') { // medium difculty
             speeded = 20;
         }
 
-        if (difficulty == 'hard') {
+        if (difficulty == 'hard') { // hard difculty
             speeded = 30;
         }
 
@@ -80,19 +80,19 @@
         } //end function
 
 
-        var leftKeyPress = false;
+        var leftKeyPress = false; 
         var rightKeyPress = false;
         var upKeyPress = false;
         var downKeyPress = false;
 
 
-        const LEFT_KEY = 37;
-        const RIGHT_KEY = 39;
-        const UP_KEY = 38;
-        const DOWN_KEY = 40;
+        const LEFT_KEY = 37; // left key
+        const RIGHT_KEY = 39; // right key
+        const UP_KEY = 38; // up key
+        const DOWN_KEY = 40; // down key
 
-        var gridCols = 30;
-        var gridRows = 20;
+        var gridCols = 30; // map width
+        var gridRows = 20; // map hiegth
 
         var lvl = 0;
         var arraymap = [ // dungeon map
@@ -236,7 +236,7 @@
 
         } // end func
 
-        var playerLoc = 0;
+        var playerLoc = 0; // play location
 
         function findplayer() {
 
@@ -247,7 +247,7 @@
             });
         }
 
-        function newLevel() {
+        function newLevel() { // new lvl redraw
             lvl++;
             arraymap.forEach(function(block, i, array) {
                 delete arraymap[i];
@@ -264,7 +264,7 @@
 
                 arraymap = arraymap.filter(item => item !== undefined);
                 arraymap = arraymap3;
-                settingUp = true;
+                settingUp = true; // redraw map 2
 
             }
 
@@ -275,7 +275,7 @@
 
                 arraymap = arraymap.filter(item => item !== undefined);
                 arraymap = arraymap4;
-                settingUp = true;
+                settingUp = true; // redraw mpa 3
 
 
             }
